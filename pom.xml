@@ -155,7 +155,7 @@
                     <jmeterExtensions>
                         <artifact>kg.apc:jmeter-plugins-casutg:2.9</artifact>
                     </jmeterExtensions>
-                    <downloadExtensionDependencies>false</downloadExtensionDependencies>
+                    <!-- <downloadExtensionDependencies>false</downloadExtensionDependencies> -->
                     <configuration>
                         <overrideRootLogLevel>debug</overrideRootLogLevel>
                     </configuration>
