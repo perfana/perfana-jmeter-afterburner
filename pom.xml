@@ -226,11 +226,11 @@
             <properties>
                 <server_name>optimus-prime-fe</server_name>
                 <port>8080</port>
-                <testEnvironment>jmeter-acc</testEnvironment>
+                <testEnvironment>acc</testEnvironment>
                 <perfanaUrl>http://perfana:3000</perfanaUrl>
                 <wiremockUrl>http://wiremock:8080</wiremockUrl>
                 <influxDbUrl>influxdb</influxDbUrl>
-
+                <tags>jmeter,load-test</tags>
             </properties>
         </profile>
 
@@ -260,7 +260,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <workload>loadTest</workload>
+                <workload>jmeter-loadTest</workload>
                 <duration>7</duration>
                 <targetConcurrency>50</targetConcurrency>
                 <rampUpTime>3</rampUpTime>
