@@ -4,9 +4,10 @@ pipeline {
 
     parameters {
         string(name: 'system_under_test', defaultValue: 'Afterburner', description: 'Name used as System Under Test in Perfana')
-        string(name: 'gatlingRepo', defaultValue: 'https://github.com/perfana/perfana-gatling-afterburner.git', description: 'Gatling git repository')
-        string(name: 'gatlingBranch', defaultValue: 'master', description: 'Gatling git repository branch')
-        choice(name: 'workload', choices: ['test-type-load', 'test-type-stress', 'test-type-slow-backend'], description: 'Workload profile to use in your Gatling script')
+        string(name: 'jmeterRepo', defaultValue: 'https://github.com/perfana/perfana-jmeter-afterburner.git', description: 'jmeter git repository')
+        string(name: 'jmeterBranch', defaultValue: 'master', description: 'jmeter git repository branch')
+        choice(name: 'workload', choices: ['test-type-load', 'test-type-stress', 'test-type-slow-backend'], description: 'Workload profile to use in your jmeter script')
+        choice(name: 'testEnvironment', choices: ['test-env-acc', 'test-env-local', 'test-env-kubernetes'], description: 'Workload profile to use in your jmeter script')
         string(name: 'annotations', defaultValue: '', description: 'Add annotations to the test run, these will be displayed in Perfana')
 
     }
@@ -19,7 +20,7 @@ pipeline {
 
                 script {
 
-                    git url: params.gatlingRepo, branch: params.gatlingBranch
+                    git url: params.jmeterRepo, branch: params.jmeterBranch
 
                 }
 
@@ -43,7 +44,7 @@ pipeline {
                     def mvnHome = tool 'M3'
 
                     sh """
-                       ${mvnHome}/bin/mvn clean verify -P${params.workload} -DtestRunId=${testRunId} -Dperfana.buildResultsUrl=${buildUrl} -Dperfana.applicationRelease=${version} -Dperfana.application=${params.system_under_test} -Dannotations="${params.annotations}" -Ptest-env-acc,${params.workload},assert-results -DtestRunId=${testRunId} -DbuildResultsUrl=${buildUrl} -Dversion=${version} -DsystemUnderTest=${system_under_test} -Dannotations="${params.annotations}"
+                       ${mvnHome}/bin/mvn clean verify -P${params.testEnvironment},${params.workload} -DtestRunId=${testRunId} -DbuildResultsUrl=${buildUrl} -Dversion=${version} -DsystemUnderTest=${system_under_test} -Dannotations="${params.annotations}"
                     """
                 }
             }
@@ -54,4 +55,4 @@ pipeline {
 }
 
 
-                           mvn 
+                         
