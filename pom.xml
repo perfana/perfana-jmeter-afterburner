@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+   
+
+    <groupId>io.perfana</groupId>
+    <artifactId>jmeter-afterburner</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+ 
+        <encoding>UTF-8</encoding>
+
+        <!-- dependency versioning -->
+        <events-jmeter-maven-plugin.version>3.1.2-events-1-SNAPSHOT</events-jmeter-maven-plugin.version>
+        <perfana-java-client.version>1.4.1</perfana-java-client.version>
+        <test-events-wiremock.version>1.1.1</test-events-wiremock.version>
+
+        <!-- Perfana url  -->
+        <perfanaUrl>http://localhost:4000</perfanaUrl>
+        <wiremockUrl>http://wiremock:8080</wiremockUrl>
+        <influxDbUrl>http://localhost:8086/write?db=jmeter</influxDbUrl>
+
+
+        <!-- By default Jenkins build Url is used -->
+        <CIBuildResultsUrl>${BUILD_URL}</CIBuildResultsUrl>
+
+        <!-- By default send data to perfana -->
+        <perfanaEnabled>true</perfanaEnabled>
+
+        <!-- By default don't assert test results -->
+        <assertResultsEnabled>false</assertResultsEnabled>
+
+        <!-- By default disable events -->
+        <eventsEnabled>false</eventsEnabled>
+        <eventScheduleScript></eventScheduleScript>
+
+        <!-- Default load settings -->
+        <initialUsersPerSecond>1</initialUsersPerSecond>
+        <targetUsersPerSecond>1</targetUsersPerSecond>
+        <rampupTimeInSeconds>60</rampupTimeInSeconds>
+        <constantLoadTimeInSeconds>900</constantLoadTimeInSeconds>
+
+        <!-- Settings for the Perfana Dashboard -->
+        <systemUnderTest>Afterburner</systemUnderTest>
+        <version>1.0</version>
+        <tags></tags>
+
+      
+    </properties>
+
+   
+    <build>
+        <testSourceDirectory>src/test/scala</testSourceDirectory>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>nl.stokpop</groupId>
+                    <artifactId>events-jmeter-maven-plugin</artifactId>
+                    <version>${events-jmeter-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>build.time</name>
+                            <pattern>yyyyMMdd-HHmmss</pattern>
+                            <timeZone>CET</timeZone>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>nl.stokpop</groupId>
+                <artifactId>events-jmeter-maven-plugin</artifactId>
+                <configuration>
+                    <eventDebugEnabled>true</eventDebugEnabled>
+                    <eventSystemUnderTest>${systemUnderTest}</eventSystemUnderTest>
+                    <eventVersion>${version}</eventVersion>
+                    <eventWorkload>${workload}</eventWorkload>
+                    <eventTestEnvironment>${testEnvironment}</eventTestEnvironment>
+                    <eventTestRunId>${testRunId}</eventTestRunId>
+                    <eventBuildResultsUrl>${CIBuildResultsUrl}</eventBuildResultsUrl>
+                    <eventRampupTimeInSeconds>${rampupTimeInSeconds}</eventRampupTimeInSeconds>
+                    <eventConstantLoadTimeInSeconds>${constantLoadTimeInSeconds}</eventConstantLoadTimeInSeconds>
+                    <eventAnnotations>${annotations}</eventAnnotations>
+                    <eventVariables>
+                        <property>
+                            <name>$service</name>
+                            <value>afterburner</value>
+                        </property>
+                    </eventVariables>
+                    <eventTags>${tags}</eventTags>
+                    <eventScheduleScript>
+                        ${eventScheduleScript}
+                    </eventScheduleScript>
+                    <events>
+                    <!-- here you can define events, with own properties per event,
+                         so you can form instance create two wiremock events with different wiremockUrls for example -->
+                        <MyWireMockEvent>
+                            <eventFactory>nl.stokpop.event.wiremock.WiremockEventFactory</eventFactory>
+                            <enabled>${eventsEnabled}</enabled>
+                            <wiremockFilesDir>src/test/resources/wiremock</wiremockFilesDir>
+                            <wiremockUrl>${wiremockUrl}</wiremockUrl>
+                        </MyWireMockEvent>
+                        <MyPerfanaEvent>
+                            <eventFactory>io.perfana.event.PerfanaEventFactory</eventFactory>
+                            <enabled>${perfanaEnabled}</enabled>
+                            <perfanaUrl>${perfanaUrl}</perfanaUrl>
+                        </MyPerfanaEvent>
+                    </events>
+                    <propertiesUser>
+
+                        <test.testRunId>${testRunId}</test.testRunId>
+                        <test.duration>${duration}</test.duration>
+                        <test.targetConcurrency>${targetConcurrency}</test.targetConcurrency>
+                        <test.rampUpTime>${rampUpTime}</test.rampUpTime>
+                        <test.influxdb.url>${influxDbUrl}</test.influxdb.url>
+                        <test.systemUnderTest>${systemUnderTest}</test.systemUnderTest>
+                        <test.testEnvironment>${testEnvironment}</test.testEnvironment>
+                        <test.server_name>${server_name}</test.server_name>
+                        <test.port>${port}</test.port>
+
+
+                    </propertiesUser>
+                    <!--<proxyConfig>-->
+                    <!--<host>localhost</host>-->
+                    <!--<port>8888</port>-->
+                    <!--<username>jimbob</username>-->
+                    <!--<password>correct horse battery staple</password>-->
+                    <!--<hostExclusions>localhost|*.lazerycode.com</hostExclusions>-->
+                    <!--</proxyConfig>-->
+                    <jMeterProcessJVMSettings>
+                        <xms>1024</xms>
+                        <xmx>1024</xmx>
+                    </jMeterProcessJVMSettings>
+
+                    <jmeterExtensions>
+                        <artifact>kg.apc:jmeter-plugins-casutg:2.9</artifact>
+                    </jmeterExtensions>
+                    <downloadExtensionDependencies>false</downloadExtensionDependencies>
+
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>configuration</id>
+                        <goals>
+                            <goal>configure</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jmeter-tests</id>
+                        <goals>
+                            <goal>jmeter</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>nl.stokpop</groupId>
+                        <artifactId>test-events-wiremock</artifactId>
+                        <version>${test-events-wiremock.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.perfana</groupId>
+                        <artifactId>perfana-java-client</artifactId>
+                        <version>${perfana-java-client.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+
+    </build>
+
+
+    <!-- ************************************************************************ ==
+    == Below we have defined three sets of profiles, which control the type of    ==
+    == test that will be run and the targeted testEnvironment.                        ==
+    == If you wish to run a stress test on acceptance, use:                       ==
+    == mvn perfana-jmeter:integration-test -Ptest-type-stress,test-env-acc       ==
+    == ************************************************************************ -->
+
+    <profiles>
+
+        <!-- Test testEnvironment profiles -->
+
+        <profile>
+            <id>test-env-local</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <server_name>localhost</server_name>
+                <port>8888</port>
+                <testEnvironment>local</testEnvironment>
+                <perfanaUrl>http://localhost:4000</perfanaUrl>
+                <wiremockUrl>http://localhost:8060</wiremockUrl>
+                <influxDbUrl>localhost</influxDbUrl>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>test-env-acc</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <server_name>optimus-prime-fe</server_name>
+                <port>8080</port>
+                <testEnvironment>acc</testEnvironment>
+                <perfanaUrl>http://perfana:3000</perfanaUrl>
+                <wiremockUrl>http://wiremock:8080</wiremockUrl>
+                <influxDbUrl>http://influxdb:8086/write?db=jmeter</influxDbUrl>
+
+            </properties>
+        </profile>
+
+
+        <profile>
+            <id>kubernetes</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <server_name>http://optimus-prime-fe.perfana.svc.cluster.local</server_name>
+                <port>80</port>
+                <testEnvironment>acc</testEnvironment>
+                <perfanaUrl>http://perfana.perfana.svc.cluster.local</perfanaUrl>
+                <wiremockUrl>http://wiremock.perfana.svc.cluster.local:8080</wiremockUrl>
+                <influxDbUrl>http://influxdb/write?db=jmeter</influxDbUrl>
+            </properties>
+        </profile>
+
+
+        <!-- Test type profiles -->
+
+        <profile>
+            <id>test-type-stress</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <workload>stressTest</workload>
+                <duration>7</duration>
+                <targetConcurrency>50</targetConcurrency>
+                <rampUpTime>3</rampUpTime>
+                <perfanaEnabled>true</perfanaEnabled>
+                <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}-${build.time}</testRunId>
+                <tags>stress-test</tags>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>test-type-load</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <workload>loadTest</workload>
+                <duration>7</duration>
+                <targetConcurrency>50</targetConcurrency>
+                <rampUpTime>3</rampUpTime>
+                <perfanaEnabled>true</perfanaEnabled>
+                <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}-${build.timestamp}</testRunId>
+                <eventsEnabled>true</eventsEnabled>
+                <eventScheduleScript>
+                    PT0S|wiremock-change-delay(delay=400)|delay=400
+                </eventScheduleScript>
+                <tags>load-test</tags>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>test-type-slow-backend</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <workload>slowBackendTest</workload>
+                <duration>7</duration>
+                <targetConcurrency>50</targetConcurrency>
+                <rampUpTime>3</rampUpTime>
+                <perfanaEnabled>true</perfanaEnabled>
+                <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}-${build.timestamp}</testRunId>
+                <eventsEnabled>true</eventsEnabled>
+                <eventScheduleScript>
+                    PT0S|wiremock-change-delay(delay=400)|delay=400
+                    PT1M|wiremock-change-delay(delay=2000)|delay=2000
+                    PT2M|wiremock-change-delay(delay=4000)|delay=4000
+                    PT3M|wiremock-change-delay(delay=8000)|delay=8000
+                    PT4M|wiremock-change-delay(delay=12000)|delay=12000
+                    PT5M|wiremock-change-delay(delay=400)|delay=400
+                </eventScheduleScript>
+                <tags>load-test,perfana-demo-host</tags>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>test-type-endurance</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <workload>enduranceTest</workload>
+                <duration>7</duration>
+                <targetConcurrency>50</targetConcurrency>
+                <rampUpTime>3</rampUpTime>
+                <perfanaEnabled>true</perfanaEnabled>
+                <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}-${build.time}</testRunId>
+            </properties>
+        </profile>
+
+
+
+
+
+    </profiles>
+</project>
+
