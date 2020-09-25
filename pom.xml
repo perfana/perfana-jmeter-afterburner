@@ -230,7 +230,6 @@
                 <perfanaUrl>http://perfana:3000</perfanaUrl>
                 <wiremockUrl>http://wiremock:8080</wiremockUrl>
                 <influxDbUrl>influxdb</influxDbUrl>
-                <tags>jmeter,load-test</tags>
             </properties>
         </profile>
 
@@ -270,7 +269,7 @@
                 <eventScheduleScript>
                     PT0S|wiremock-change-delay(delay=400)|delay=400
                 </eventScheduleScript>
-                <tags>load-test</tags>
+                <tags>jmeter,load-test</tags>
             </properties>
         </profile>
 
