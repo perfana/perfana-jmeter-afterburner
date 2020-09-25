@@ -228,7 +228,7 @@
                 <testEnvironment>jmeter-acc</testEnvironment>
                 <perfanaUrl>http://perfana:3000</perfanaUrl>
                 <wiremockUrl>http://wiremock:8080</wiremockUrl>
-                <influxDbUrl>influxdb</influxDbU    rl>
+                <influxDbUrl>influxdb</influxDbUrl>
 
             </properties>
         </profile>
