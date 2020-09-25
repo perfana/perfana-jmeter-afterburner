@@ -225,29 +225,14 @@
             <properties>
                 <server_name>optimus-prime-fe</server_name>
                 <port>8080</port>
-                <testEnvironment>acc</testEnvironment>
+                <testEnvironment>jmeter-acc</testEnvironment>
                 <perfanaUrl>http://perfana:3000</perfanaUrl>
                 <wiremockUrl>http://wiremock:8080</wiremockUrl>
-                <influxDbUrl>http://influxdb:8086/write?db=jmeter</influxDbUrl>
+                <influxDbUrl>influxdb</influxDbUrl>
 
             </properties>
         </profile>
 
-
-        <profile>
-            <id>kubernetes</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <server_name>http://optimus-prime-fe.perfana.svc.cluster.local</server_name>
-                <port>80</port>
-                <testEnvironment>acc</testEnvironment>
-                <perfanaUrl>http://perfana.perfana.svc.cluster.local</perfanaUrl>
-                <wiremockUrl>http://wiremock.perfana.svc.cluster.local:8080</wiremockUrl>
-                <influxDbUrl>http://influxdb/write?db=jmeter</influxDbUrl>
-            </properties>
-        </profile>
 
 
         <!-- Test type profiles -->
@@ -259,9 +244,9 @@
             </activation>
             <properties>
                 <workload>stressTest</workload>
-                <duration>7</duration>
-                <targetConcurrency>50</targetConcurrency>
-                <rampUpTime>3</rampUpTime>
+                <duration>1</duration>
+                <targetConcurrency>100</targetConcurrency>
+                <rampUpTime>15</rampUpTime>
                 <perfanaEnabled>true</perfanaEnabled>
                 <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}-${build.time}</testRunId>
                 <tags>stress-test</tags>
