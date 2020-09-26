@@ -269,7 +269,7 @@
                 <eventScheduleScript>
                     PT0S|wiremock-change-delay(delay=400)|delay=400
                 </eventScheduleScript>
-                <tags>jmeter</tags>
+                <tags>jmeter,load-test</tags>
             </properties>
         </profile>
 
