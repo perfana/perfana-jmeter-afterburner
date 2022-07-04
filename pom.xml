@@ -2,26 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-   
-
     <groupId>io.perfana</groupId>
     <artifactId>jmeter-afterburner</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
- 
         <encoding>UTF-8</encoding>
 
-        <!-- dependency versioning -->
-        <events-jmeter-maven-plugin.version>3.1.2-events-1</events-jmeter-maven-plugin.version>
-        <perfana-java-client.version>1.4.1</perfana-java-client.version>
-        <test-events-wiremock.version>1.1.1</test-events-wiremock.version>
+        <!-- version ranges are not supported for plugins ☹️ -->
+        <events-jmeter-maven-plugin.version>3.5.0-events-1</events-jmeter-maven-plugin.version>
+        <perfana-java-client.version>[2.0.0,3)</perfana-java-client.version>
+        <test-events-wiremock.version>[2.0.0,3)</test-events-wiremock.version>
 
         <!-- Perfana url  -->
         <perfanaUrl>http://localhost:4000</perfanaUrl>
         <wiremockUrl>http://wiremock:8080</wiremockUrl>
         <influxDbUrl>http://localhost:8086/write?db=jmeter</influxDbUrl>
-
 
         <!-- By default Jenkins build Url is used -->
         <CIBuildResultsUrl>${BUILD_URL}</CIBuildResultsUrl>
@@ -61,7 +57,7 @@
                     <version>3.0.0</version>
                 </plugin>
                 <plugin>
-                    <groupId>nl.stokpop</groupId>
+                    <groupId>io.perfana</groupId>
                     <artifactId>events-jmeter-maven-plugin</artifactId>
                     <version>${events-jmeter-maven-plugin.version}</version>
                 </plugin>
@@ -88,46 +84,53 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>nl.stokpop</groupId>
+                <groupId>io.perfana</groupId>
                 <artifactId>events-jmeter-maven-plugin</artifactId>
                 <configuration>
-                    <eventDebugEnabled>true</eventDebugEnabled>
-                    <eventSystemUnderTest>${systemUnderTest}</eventSystemUnderTest>
-                    <eventVersion>${version}</eventVersion>
-                    <eventWorkload>${workload}</eventWorkload>
-                    <eventTestEnvironment>${testEnvironment}</eventTestEnvironment>
-                    <eventTestRunId>${testRunId}</eventTestRunId>
-                    <eventBuildResultsUrl>${CIBuildResultsUrl}</eventBuildResultsUrl>
-                    <eventRampupTimeInSeconds>${rampupTimeInSeconds}</eventRampupTimeInSeconds>
-                    <eventConstantLoadTimeInSeconds>${constantLoadTimeInSeconds}</eventConstantLoadTimeInSeconds>
-                    <eventAnnotations>${annotations}</eventAnnotations>
-                    <eventVariables>
-                        <property>
-                            <name>$service</name>
-                            <value>afterburner</value>
-                        </property>
-                    </eventVariables>
-                    <eventTags>${tags}</eventTags>
-                    <eventScheduleScript>
-                        ${eventScheduleScript}
-                    </eventScheduleScript>
-                    <events>
-                    <!-- here you can define events, with own properties per event,
+                    <eventSchedulerConfig>
+                        <debugEnabled>true</debugEnabled>
+                        <schedulerEnabled>true</schedulerEnabled>
+                        <failOnError>true</failOnError>
+                        <continueOnEventCheckFailure>true</continueOnEventCheckFailure>
+                        <testConfig>
+                            <systemUnderTest>${systemUnderTest}</systemUnderTest>
+                            <version>${version}</version>
+                            <workload>${workload}</workload>
+                            <testEnvironment>${testEnvironment}</testEnvironment>
+                            <testRunId>${testRunId}</testRunId>
+                            <buildResultsUrl>${CIBuildResultsUrl}</buildResultsUrl>
+                            <rampupTimeInSeconds>${rampupTimeInSeconds}</rampupTimeInSeconds>
+                            <constantLoadTimeInSeconds>${constantLoadTimeInSeconds}</constantLoadTimeInSeconds>
+                            <annotations>${annotations}</annotations>
+                            <tags>${tags}</tags>
+                        </testConfig>
+                        <scheduleScript>
+                            ${eventScheduleScript}
+                        </scheduleScript>
+                        <!-- here you can define events, with own properties per event,
                          so you can form instance create two wiremock events with different wiremockUrls for example -->
-                        <MyWireMockEvent>
-                            <eventFactory>nl.stokpop.event.wiremock.WiremockEventFactory</eventFactory>
-                            <enabled>${eventsEnabled}</enabled>
-                            <wiremockFilesDir>src/test/resources/wiremock</wiremockFilesDir>
-                            <wiremockUrl>${wiremockUrl}</wiremockUrl>
-                        </MyWireMockEvent>
-                        <MyPerfanaEvent>
-                            <eventFactory>io.perfana.event.PerfanaEventFactory</eventFactory>
-                            <enabled>${perfanaEnabled}</enabled>
-                            <perfanaUrl>${perfanaUrl}</perfanaUrl>
-                        </MyPerfanaEvent>
-                    </events>
-                    <propertiesUser>
+                        <eventConfigs>
+                            <eventConfig implementation="io.perfana.event.PerfanaEventConfig">
+                                <name>PerfanaEvent1</name>
+                                <enabled>${perfanaEnabled}</enabled>
+                                <perfanaUrl>${perfanaUrl}</perfanaUrl>
+                                <apiKey>perfana-api-key-XXX-YYY-ZZZ</apiKey>
+                                <assertResultsEnabled>false</assertResultsEnabled>
+                                <variables>
+                                    <service>afterburner</service>
+                                </variables>
+                            </eventConfig>
+                            <eventConfig implementation="io.perfana.event.wiremock.WiremockEventConfig">
+                                <name>WiremockEvent1</name>
+                                <enabled>${eventsEnabled}</enabled>
+                                <wiremockFilesDir>src/test/resources/wiremock</wiremockFilesDir>
+                                <wiremockUrl>${wiremockUrl}</wiremockUrl>
+                                <useProxy>false</useProxy>
+                            </eventConfig>
+                        </eventConfigs>
+                    </eventSchedulerConfig>
 
+                    <propertiesUser>
                         <test.testRunId>${testRunId}</test.testRunId>
                         <test.duration>${duration}</test.duration>
                         <test.targetConcurrency>${targetConcurrency}</test.targetConcurrency>
@@ -137,16 +140,8 @@
                         <test.testEnvironment>${testEnvironment}</test.testEnvironment>
                         <test.server_name>${server_name}</test.server_name>
                         <test.port>${port}</test.port>
-
-
                     </propertiesUser>
-                    <!--<proxyConfig>-->
-                    <!--<host>localhost</host>-->
-                    <!--<port>8888</port>-->
-                    <!--<username>jimbob</username>-->
-                    <!--<password>correct horse battery staple</password>-->
-                    <!--<hostExclusions>localhost|*.lazerycode.com</hostExclusions>-->
-                    <!--</proxyConfig>-->
+
                     <jMeterProcessJVMSettings>
                         <xms>1024</xms>
                         <xmx>1024</xmx>
@@ -176,7 +171,7 @@
 
                 <dependencies>
                     <dependency>
-                        <groupId>nl.stokpop</groupId>
+                        <groupId>io.perfana</groupId>
                         <artifactId>test-events-wiremock</artifactId>
                         <version>${test-events-wiremock.version}</version>
                     </dependency>
@@ -210,9 +205,9 @@
             </activation>
             <properties>
                 <server_name>localhost</server_name>
-                <port>8888</port>
+                <port>8080</port>
                 <testEnvironment>local</testEnvironment>
-                <perfanaUrl>http://localhost:4000</perfanaUrl>
+                <perfanaUrl>http://localhost:4312</perfanaUrl>
                 <wiremockUrl>http://localhost:8060</wiremockUrl>
                 <influxDbUrl>localhost</influxDbUrl>
             </properties>
@@ -312,10 +307,6 @@
                 <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}-${build.time}</testRunId>
             </properties>
         </profile>
-
-
-
-
 
     </profiles>
 </project>
